@@ -232,9 +232,9 @@ MIT License
 
 ## 👤 作者信息
 
-- **姓名**: 陈磊
+- **姓名**: 三石
 - **邮箱**: [待填写]
-- **GitHub**: [仓库地址]
+- **GitHub**: [[仓库地址](https://github.com/CxxxxLxxxxC/AI-Resume-Analyzer)]
 
 ## 🙏 致谢
 
