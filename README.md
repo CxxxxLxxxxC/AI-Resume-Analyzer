@@ -273,7 +273,7 @@ const response = await axios.post('http://localhost:8000/api/upload', formData)
 |------|------|
 | 作者 | 三十 |
 | GitHub | [CxxxxLxxxxC/AI-Resume-Analyzer](https://github.com/CxxxxLxxxxC/AI-Resume-Analyzer) |
-| 项目地址 | [在线演示](https://cxxxxlxxxxc.github.io/ai-resume-analyzer/) |
+| 项目地址 | [在线演示](https://cxxxxlxxxxc.github.io/AI-Resume-Analyzer/) |
 
 ## 🙏 致谢
 
