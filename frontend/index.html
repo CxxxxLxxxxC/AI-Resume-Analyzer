@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI简历分析系统</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+
+    <!-- Axios -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .upload-area {
+            border: 2px dashed #6c757d;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .upload-area:hover {
+            border-color: #0d6efd;
+            background-color: #f8f9fa;
+        }
+        .result-card {
+            background-color: #fff;
+        }
+        .score-badge {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        .score-display {
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+        .high-score {
+            color: #198754;
+        }
+        .medium-score {
+            color: #fd7e14;
+        }
+        .low-score {
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="container">
+        <h1 class="text-center my-4">
+            <i class="bi bi-file-earmark-text"></i> AI简历分析系统
+        </h1>
+
+        <div class="card">
+            <div class="card-body">
+                <h3 class="card-title mb-4">上传简历</h3>
+                <div class="upload-area" @click="selectFile">
+                    <i v-if="!isLoading" class="bi bi-cloud-upload fs-1 text-primary mb-3"></i>
+                    <i v-else class="bi bi-hourglass-split fs-1 text-warning mb-3"></i>
+                    <p class="mb-2">{{ uploadStatus || '点击或拖拽PDF简历文件到此处' }}</p>
+                    <p class="text-muted small">支持PDF格式，最大文件大小：10MB</p>
+                    <input type="file" ref="fileInput" @change="handleFileSelect" accept=".pdf" class="d-none">
+                </div>
+            </div>
+        </div>
+
+        <div v-if="resumeData" class="card result-card">
+            <div class="card-body">
+                <h3 class="card-title mb-4">分析结果</h3>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>基本信息</h5>
+                        <div v-if="resumeData.basic_info.name" class="mb-2">
+                            <strong>姓名：</strong>{{ resumeData.basic_info.name }}
+                        </div>
+                        <div v-if="resumeData.basic_info.phone" class="mb-2">
+                            <strong>电话：</strong>{{ resumeData.basic_info.phone }}
+                        </div>
+                        <div v-if="resumeData.basic_info.email" class="mb-2">
+                            <strong>邮箱：</strong>{{ resumeData.basic_info.email }}
+                        </div>
+                        <div v-if="resumeData.basic_info.address" class="mb-2">
+                            <strong>地址：</strong>{{ resumeData.basic_info.address }}
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <h5>求职信息</h5>
+                        <div v-if="resumeData.job_info.job_intention" class="mb-2">
+                            <strong>求职意向：</strong>{{ resumeData.job_info.job_intention }}
+                        </div>
+                        <div v-if="resumeData.job_info.expected_salary" class="mb-2">
+                            <strong>期望薪资：</strong>{{ resumeData.job_info.expected_salary }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <h5>背景信息</h5>
+                        <div v-if="resumeData.background_info.work_experience" class="mb-2">
+                            <strong>工作经历：</strong>{{ resumeData.background_info.work_experience }}
+                        </div>
+                        <div v-if="resumeData.background_info.education" class="mb-2">
+                            <strong>学历：</strong>{{ resumeData.background_info.education }}
+                        </div>
+                        <div v-if="resumeData.background_info.projects" class="mb-2">
+                            <strong>项目经历：</strong>{{ resumeData.background_info.projects }}
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <h5>技能关键词</h5>
+                        <div class="mb-2">
+                            <strong>技能：</strong>
+                            <span v-for="skill in resumeData.skills" :key="skill" class="badge bg-primary me-1">
+                                {{ skill }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 岗位匹配分析 -->
+                <div class="card mt-4" style="background-color: #f8f9fa; border: 1px solid #dee2e6;">
+                    <div class="card-body">
+                        <h5 class="card-title">岗位匹配度分析</h5>
+                        <div class="mb-3">
+                            <label class="form-label"><strong>岗位描述：</strong></label>
+                            <textarea
+                                v-model="jobDescription"
+                                class="form-control"
+                                rows="6"
+                                placeholder="请输入招聘岗位的描述，如：招聘Java后端开发工程师，要求熟悉Spring Boot、MySQL..."
+                            ></textarea>
+                        </div>
+                        <button
+                            @click="analyzeMatch"
+                            :disabled="!jobDescription.trim() || isAnalyzing"
+                            class="btn btn-primary w-100"
+                        >
+                            <i class="bi bi-calculator me-2"></i>
+                            {{ isAnalyzing ? '分析中...' : '分析匹配度' }}
+                        </button>
+
+                        <!-- 匹配度结果 -->
+                        <div v-if="matchResult" class="mt-4">
+                            <h5 class="mb-3">匹配度结果</h5>
+                            <div class="text-center mb-4">
+                                <div class="d-flex justify-content-center align-items-center">
+                                    <span class="score-badge me-3" :class="{
+                                        'high-score': matchResult.overall_score >= 80,
+                                        'medium-score': matchResult.overall_score >= 60 && matchResult.overall_score < 80,
+                                        'low-score': matchResult.overall_score < 60
+                                    }">
+                                        {{ matchResult.overall_score }}%
+                                    </span>
+                                    <div class="progress flex-grow-1" style="max-width: 300px; height: 25px;">
+                                        <div
+                                            class="progress-bar"
+                                            :class="{
+                                                'bg-success': matchResult.overall_score >= 80,
+                                                'bg-warning': matchResult.overall_score >= 60 && matchResult.overall_score < 80,
+                                                'bg-danger': matchResult.overall_score < 60
+                                            }"
+                                            :style="{width: matchResult.overall_score + '%'}"
+                                        ></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 详细评分 -->
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="card h-100">
+                                        <div class="card-body text-center">
+                                            <h6 class="text-muted">技能匹配</h6>
+                                            <div class="score-display" :class="getScoreClass(matchResult.details.skill_match)">
+                                                {{ matchResult.details.skill_match }}%
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card h-100">
+                                        <div class="card-body text-center">
+                                            <h6 class="text-muted">经验匹配</h6>
+                                            <div class="score-display" :class="getScoreClass(matchResult.details.experience_match)">
+                                                {{ matchResult.details.experience_match }}%
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card h-100">
+                                        <div class="card-body text-center">
+                                            <h6 class="text-muted">学历匹配</h6>
+                                            <div class="score-display" :class="getScoreClass(matchResult.details.education_match)">
+                                                {{ matchResult.details.education_match }}%
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        // 创建Vue应用
+        const { createApp } = Vue
+
+        const app = createApp({
+            data() {
+                return {
+                    resumeData: null,
+                    fileInput: null,
+                    isLoading: false,
+                    uploadStatus: '',
+                    jobDescription: '',
+                    isAnalyzing: false,
+                    matchResult: null
+                }
+            },
+            mounted() {
+                this.fileInput = this.$refs.fileInput
+            },
+            methods: {
+                selectFile() {
+                    this.fileInput.click()
+                },
+                handleFileSelect(event) {
+                    const file = event.target.files[0]
+                    if (file && file.type === 'application/pdf') {
+                        this.uploadResume(file)
+                    } else {
+                        alert('请选择PDF格式的简历文件')
+                    }
+                },
+                async uploadResume(file) {
+                    this.isLoading = true
+                    this.uploadStatus = '正在上传简历...'
+
+                    const formData = new FormData()
+                    formData.append('file', file)
+
+                    try {
+                        const response = await axios.post('http://localhost:8000/api/upload', formData, {
+                            headers: {
+                                'Content-Type': 'multipart/form-data'
+                            },
+                            timeout: 30000 // 30秒超时
+                        })
+
+                        this.resumeData = response.data
+                        this.uploadStatus = '分析完成！'
+                        console.log('简历分析完成:', this.resumeData)
+                    } catch (error) {
+                        console.error('上传失败:', error)
+                        if (error.response) {
+                            // 服务器返回了错误状态码
+                            this.uploadStatus = `上传失败: ${error.response.data.detail || '服务器错误'}`
+                        } else if (error.request) {
+                            // 请求已发出但没有收到响应
+                            this.uploadStatus = '无法连接到服务器，请确保后端服务已启动'
+                        } else {
+                            // 请求设置出错
+                            this.uploadStatus = `请求失败: ${error.message}`
+                        }
+                        alert(this.uploadStatus)
+                    } finally {
+                        this.isLoading = false
+                        // 3秒后清除状态
+                        setTimeout(() => {
+                            this.uploadStatus = ''
+                        }, 3000)
+                    }
+                },
+                async analyzeMatch() {
+                    if (!this.jobDescription.trim()) {
+                        alert('请输入岗位描述')
+                        return
+                    }
+
+                    this.isAnalyzing = true
+
+                    const formData = new FormData()
+                    formData.append('resume_id', this.resumeData.resume_id)
+                    formData.append('job_description', this.jobDescription)
+
+                    try {
+                        const response = await axios.post('http://localhost:8000/api/analyze', formData, {
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded'
+                            },
+                            timeout: 30000
+                        })
+
+                        this.matchResult = response.data
+                        console.log('匹配度分析完成:', this.matchResult)
+                    } catch (error) {
+                        console.error('分析失败:', error)
+                        if (error.response) {
+                            alert(`分析失败: ${error.response.data.detail || '服务器错误'}`)
+                        } else if (error.request) {
+                            alert('无法连接到服务器，请确保后端服务已启动')
+                        } else {
+                            alert(`请求失败: ${error.message}`)
+                        }
+                    } finally {
+                        this.isAnalyzing = false
+                    }
+                },
+                getScoreClass(score) {
+                    if (score >= 80) return 'high-score'
+                    if (score >= 60) return 'medium-score'
+                    return 'low-score'
+                }
+            }
+        })
+
+        // 挂载应用
+        app.mount('#app')
+    </script>
+</body>
+</html>

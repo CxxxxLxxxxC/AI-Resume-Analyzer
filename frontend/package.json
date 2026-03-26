@@ -1,0 +1,13 @@
+{
+  "name": "ai-resume-analysis-frontend",
+  "version": "1.0.0",
+  "description": "AI简历分析系统前端",
+  "main": "index.html",
+  "scripts": {
+    "dev": "python -m http.server 3000",
+    "start": "python -m http.server 3000",
+    "serve": "python -m http.server 3000"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

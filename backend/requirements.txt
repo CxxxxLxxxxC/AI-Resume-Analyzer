@@ -1,0 +1,51 @@
+# Web框架
+fastapi
+uvicorn[standard]
+
+# PDF处理
+PyPDF2
+
+# 缓存
+redis
+
+# AI模型 - 使用兼容版本
+transformers>=4.35.2
+torch>=2.1.0
+torchvision
+torchaudio
+accelerate
+sentence-transformers
+
+# HTTP请求
+requests
+
+# 数据处理
+pydantic
+
+# 类型提示
+typing-extensions
+
+# JSON处理
+orjson
+
+# 日期时间处理
+python-dateutil
+
+# 文件处理
+aiofiles
+
+# 日志
+loguru
+
+# 测试
+pytest
+pytest-asyncio
+httpx
+
+# 开发工具
+black
+isort
+flake8
+
+# 生产环境
+gunicorn

@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/Administrator/Desktop/**)",
+      "Bash(npm create:*)",
+      "Bash(npx create-vue@latest . -- --default)",
+      "Bash(python -m pip install -r requirements.txt)",
+      "Bash(pip3 install:*)",
+      "Bash(pip install:*)",
+      "Bash(python -m pip install -r backend/requirements.txt)",
+      "Bash(where python:*)",
+      "Bash(C:UsersAdministratorAppDataLocalMicrosoftWindowsAppspython.exe -m pip install -r backend/requirements.txt)",
+      "Bash(/c/Users/Administrator/AppData/Local/Microsoft/WindowsApps/python3 -m pip install -r backend/requirements.txt)",
+      "Bash(/c/Users/Administrator/AppData/Local/Microsoft/WindowsApps/python3 -m ensurepip --upgrade)",
+      "Bash(python -m pip install torch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2)",
+      "Bash(python -m pip install -r requirements.txt --index-url https://pypi.tuna.tsinghua.edu.cn/simple)",
+      "Bash(python -m venv venv)",
+      "Bash(source venv/bin/activate)"
+    ]
+  }
+}
