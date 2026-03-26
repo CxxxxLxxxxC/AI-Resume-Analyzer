@@ -14,17 +14,8 @@ env/
 *.log 
 .DS_Store 
 Thumbs.db 
-ECHO 处于打开状态。
-# Large model files 
-backend/models/bert-base-chinese/ 
-*.bin 
-*.h5 
-*.pth 
-*.model 
-*.ckpt 
-*.pb 
-ECHO 处于打开状态。
+
 # Uploads and data 
 uploads/ 
 data/ 
-*.db 
+*.db
